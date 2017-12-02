@@ -36,7 +36,7 @@ double angle( Point pt1, Point pt2, Point pt0 )
 
 // returns sequence of squares detected on the image.
 // the sequence is stored in the specified memory storage
-void findSquares( const Mat& image, vector<vector<Point> >& squares )
+void findSquares( const Mat& timg, vector<vector<Point> >& squares )
 {
     squares.clear();
 
@@ -48,8 +48,8 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
 
 
     // blur will enhance edge detection
-    Mat timg(image);
-    medianBlur(image, timg, 9);
+    //Mat timg(image);
+    //medianBlur(image, timg, 9);
     Mat gray0(timg.size(), CV_8U), gray;
 
     vector<vector<Point> > contours;
