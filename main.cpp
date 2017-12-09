@@ -5,27 +5,23 @@
  * AUTHORS: Diego Peña, Victor García,       *
  *          Fabio Morales, Andreina Duarte   *
  *********************************************/
-// Windows Include version
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include <cmath>
-#include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cmath>
+//#include "squares.h"
 
-#include "squares.h"
+using namespace cv;
+using namespace std;
 
 static double angle(Point pt1, Point pt2, Point pt0);
 void sortCorners(vector<Point2f>& corners, Point2f center);
 bool comparator(Point2f a, Point2f b);
 
-using namespace cv;
-using namespace std;
 
 int main() {
     // Reading the image.
@@ -150,7 +146,7 @@ int main() {
     }
     cv::Mat dominoPiece;
     dominoPiece = imread("./data/6_0.jpeg");
-    getDominoID(dominoPiece, dominosID);
+    //getDominoID(dominoPiece, dominosID);
 
     cv::waitKey(0);
     return 0;
