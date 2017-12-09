@@ -138,6 +138,22 @@ int main() {
 	imshow("dst", dst);
 	waitKey(0);
 	return 0;
+    // In this point the code has to know how many domino's are in the image
+    int n_dominos = 10;
+    
+    // Structure that will contain the information of one domino piece for the SVM
+    float dominosID[2][185];
+    for(int i=0; i<2; i++){
+        for(int j=0; j<185; j++){
+            dominosID[i][j] = 0;
+        }
+    }
+    cv::Mat dominoPiece;
+    dominoPiece = imread("./data/6_0.jpeg");
+    getDominoID(dominoPiece, dominosID);
+
+    cv::waitKey(0);
+    return 0;
 }
 
 

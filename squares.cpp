@@ -139,3 +139,62 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
 
     imshow(wndname, image);
 }
+
+void getDominoID(cv::Mat domino, float dominoID[][185]){
+    int i, j, k, m = 0;
+    int counter = 0;
+    // Mat where the Gray image output will be saved
+    cv::Mat dominogray(domino.size().height, domino.size().width, CV_8U);
+    cv::cvtColor(domino, dominogray, cv::COLOR_RGB2GRAY);
+
+    // Mat where the Gaussian output will be saved
+    cv::Mat dominoGauss(dominogray.size().height, dominogray.size().width, CV_8U);
+    cv::GaussianBlur(dominogray, dominoGauss, Size(5,5), 0);
+
+    // Mat where the OTSU output will be saved
+    cv::Mat dominoOTSU(dominoGauss.size().height, dominoGauss.size().width, CV_8U);
+    cv::threshold(dominoGauss, dominoOTSU, 0, 255, CV_THRESH_OTSU);
+
+    imshow("OTSU", dominoOTSU);
+    // Make the process for first and second half of the domino
+    for(k=0; k<2; k++){
+        // Make the horizontal sum of values
+        for(i=dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+            for(j=0; j<dominoOTSU.size().width; j++){
+                if(dominoOTSU.at<unsigned char>(i,j) >= 0)
+                    counter += (int)dominoOTSU.at<unsigned char>(i,j);
+            }
+            dominoID[k][i] = counter;
+            counter = 0;
+        }
+        // Make the vertical sum of values
+        for(j=0; j<dominoOTSU.size().width; j++){
+            for(i= dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+                if(dominoOTSU.at<unsigned char>(i,j) >= 0)
+                    counter += (int)dominoOTSU.at<unsigned char>(i,j);
+            }
+            dominoID[k][dominoOTSU.size().height/2+j] = counter;
+            counter = 0;
+        }
+    }
+
+    // Normalizing the two vectors
+    float max = 0;
+    for(i=0; i<2; i++){
+        for(j=0; j<178; j++){
+            if(dominoID[i][j] > max)
+                max = dominoID[i][j];
+        }
+        if(max!=0){
+            for(j=0; j<178; j++){
+                dominoID[i][j] = dominoID[i][j]/max; 
+            }
+        }
+        max = 0;
+    }
+
+    // Freeing memory from Mat images
+    dominogray.release();
+    dominoGauss.release();
+    dominoOTSU.release();
+}
