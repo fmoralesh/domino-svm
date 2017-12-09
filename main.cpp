@@ -24,6 +24,14 @@ bool comparator(Point2f a, Point2f b);
 
 
 int main() {
+	int i, j;
+	int n_dominos=0;
+	float dominosID[100][185];
+	for(i=0; i<100; i++){
+		for(j=0; j<185; j++){
+			dominosID[i][j] = 0;
+		}
+	}
     // Reading the image.
 	Mat src = imread("domino.jpeg");
 	if (src.empty())
@@ -79,6 +87,12 @@ int main() {
 
 			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
 			if (mincos >= -0.1 && maxcos <= 0.3) {
+				float dominoID[2][185];
+				for(int i=0; i<2; i++){
+					for(int j=0; j<185; j++){
+						dominoID[i][j] = 0;
+					}
+				}
 				Point2f center(0, 0);
 				for (int i = 0; i < approx.size(); i++) {
 					center += approx[i];
@@ -119,36 +133,31 @@ int main() {
 				warpPerspective(src, quad, transmtx, quad.size());
 				stringstream ss;
 				ss << i << ".jpg";
-				imshow(ss.str(), quad);
+
+				getDominoID(quad, dominoID);
+				for(int i=0; i<2; i++){
+					for(int j=0; j<185; j++){
+						dominosID[n_dominos][j] = dominoID[i][j];
+						std::cout << dominosID[n_dominos][j] << std::endl;
+					}
+					n_dominos++;
+				}
+				
 				waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
 		}
 	}
+	std::cout << "Numero de dominos: " << n_dominos << std::endl;
 	// Dibujar los contornos correctos
 	for (int i = 0; i < good_contours.size(); i++) {
 		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 	}
-
+	
 	imshow("src", src);
 	imshow("dst", dst);
 	waitKey(0);
 
-    // In this point the code has to know how many domino's are in the image
-    int n_dominos = 10;
-    
-    // Structure that will contain the information of one domino piece for the SVM
-    float dominosID[2][185];
-    for(int i=0; i<2; i++){
-        for(int j=0; j<185; j++){
-            dominosID[i][j] = 0;
-        }
-    }
-    cv::Mat dominoPiece;
-    dominoPiece = imread("./data/6_0.jpeg");
-    getDominoID(dominoPiece, dominosID);
-
-    cv::waitKey(0);
     return 0;
 }
 
