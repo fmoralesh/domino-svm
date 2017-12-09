@@ -13,12 +13,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
-//#include "squares.h"
+#include "squares.h"
 
 using namespace cv;
 using namespace std;
 
-static double angle(Point pt1, Point pt2, Point pt0);
+static double getAngle(Point pt1, Point pt2, Point pt0);
 void sortCorners(vector<Point2f>& corners, Point2f center);
 bool comparator(Point2f a, Point2f b);
 
@@ -133,7 +133,7 @@ int main() {
 	imshow("src", src);
 	imshow("dst", dst);
 	waitKey(0);
-	return 0;
+
     // In this point the code has to know how many domino's are in the image
     int n_dominos = 10;
     
@@ -146,7 +146,7 @@ int main() {
     }
     cv::Mat dominoPiece;
     dominoPiece = imread("./data/6_0.jpeg");
-    //getDominoID(dominoPiece, dominosID);
+    getDominoID(dominoPiece, dominosID);
 
     cv::waitKey(0);
     return 0;
@@ -180,7 +180,7 @@ bool comparator(Point2f a, Point2f b) {
 	return a.x<b.x;
 }
 
-static double angle(Point pt1, Point pt2, Point pt0) {
+static double getAngle(Point pt1, Point pt2, Point pt0) {
 	double dx1 = pt1.x - pt0.x;
 	double dy1 = pt1.y - pt0.y;
 	double dx2 = pt2.x - pt0.x;
