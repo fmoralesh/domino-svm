@@ -33,7 +33,9 @@ int main(int argv, char** argc) {
 
 	int n_dominos=0;
 	float dominosID[100][128];
+	int training_labels[100];
 	for(int i=0; i<100; i++){
+		training_labels[i] = -1;
 		for(int j=0; j<128; j++){
 			dominosID[i][j] = 0;
 		}
@@ -140,23 +142,23 @@ int main(int argv, char** argc) {
 				ss << i << ".jpg";
 				//imshow(ss.str(), quad);
 				getDominoID(quad, dominoID);
-				for(int k=0; k<1; k++){
-					std::cout << "Primera Mitad -----------------" << std::endl;
+				for(int k=0; k<2; k++){
+					//std::cout << "Primera Mitad -----------------" << std::endl;
 					for(int m=0; m<128; m++){
 						dominosID[n_dominos][m] = dominoID[k][m];
-						std::cout << dominosID[n_dominos][m] << std::endl;
+						//std::cout << dominosID[n_dominos][m] << std::endl;
 						if(m == 64){
-							std::cout << "Segunda Mitad -----------------" << std::endl;
+						//	std::cout << "Segunda Mitad -----------------" << std::endl;
 						}
 					}
+					n_dominos++;
 				}
-				n_dominos++;
 				waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
 		}
 	}
-	std::cout << "Numero de dominos: " << n_dominos << std::endl;
+	std::cout << "Numero de dominos: " << n_dominos/2 << std::endl;
 	// Dibujar los contornos correctos
 	for (int i = 0; i < good_contours.size(); i++) {
 		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);

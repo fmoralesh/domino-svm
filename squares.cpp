@@ -189,7 +189,7 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
                 max = dominoID[i][j];
         }
         if(max!=0){
-            for(j=0; j<156; j++){
+            for(j=0; j<128; j++){
                 dominoID[i][j] = dominoID[i][j]/max; 
             }
         }
