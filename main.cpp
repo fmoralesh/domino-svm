@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <cmath>
 #include "squares.h"
 
@@ -22,10 +23,16 @@ static double getAngle(Point pt1, Point pt2, Point pt0);
 void sortCorners(vector<Point2f>& corners, Point2f center);
 bool comparator(Point2f a, Point2f b);
 
+int main(int argv, char** argc) {
+	string imageName;
+	if(argv > 1){
+		imageName = argc[1];
+	}
+	else 
+		imageName = "domino.jpeg";
 
-int main() {
     // Reading the image.
-	Mat src = imread("domino.jpeg");
+	Mat src = imread(imageName);
 	if (src.empty())
 		return -1;
 
@@ -50,11 +57,10 @@ int main() {
 	vector<Point2f> approx;
 	Mat dst = src.clone();
 
-	for (int i = 0; i < contours.size(); i++)
-	{
+	for (int i = 0; i < contours.size(); i++) {
 		// Se aproximan los contornos a figuras simples
 		// a partir de su perimetro
-		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.02, true);
+		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.05, true);
 
 		// Si el objeto es muy pequeño
 		if (fabs(contourArea(contours[i])) < 100 || !isContourConvex(approx))
@@ -78,7 +84,7 @@ int main() {
 			double maxcos = cos.back();
 
 			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
-			if (mincos >= -0.1 && maxcos <= 0.3) {
+			if (mincos >= -0.3 && maxcos <= 0.5) {
 				Point2f center(0, 0);
 				for (int i = 0; i < approx.size(); i++) {
 					center += approx[i];
@@ -88,7 +94,7 @@ int main() {
 
 				Rect r = boundingRect(approx);
 				if (r.area() < 5000)continue;
-				cout << r.area() << endl;
+				
 				// puntos finales para la transformacion de la imagen
 				int h = r.height, w = r.width;
 				Point2f t1, t2, t3, t4;
@@ -129,9 +135,9 @@ int main() {
 	for (int i = 0; i < good_contours.size(); i++) {
 		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 	}
-
-	imshow("src", src);
-	imshow("dst", dst);
+	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
+	imshow("DOMINO TABLE", dst);
+	imwrite("detect_domino.jpg",dst);
 	waitKey(0);
 
     // In this point the code has to know how many domino's are in the image
@@ -145,10 +151,10 @@ int main() {
         }
     }
     cv::Mat dominoPiece;
-    dominoPiece = imread("./data/6_0.jpeg");
-    getDominoID(dominoPiece, dominosID);
+    //dominoPiece = imread("./data/6_0.jpeg");
+    //getDominoID(dominoPiece, dominosID);
 
-    cv::waitKey(0);
+    //cv::waitKey(0);
     return 0;
 }
 
