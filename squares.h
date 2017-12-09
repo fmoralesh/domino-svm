@@ -24,6 +24,6 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares );
 void drawSquares( Mat& image, const vector<vector<Point> >& squares );
 int numberSquares(vector<vector<Point> >& squares );
 
-void getDominoID(cv::Mat domino, float dominosID[][156]);
+void getDominoID(cv::Mat domino, float dominosID[][128]);
 
 #endif

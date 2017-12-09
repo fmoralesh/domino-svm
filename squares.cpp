@@ -140,9 +140,12 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
     imshow(wndname, image);
 }
 
-void getDominoID(cv::Mat domino, float dominoID[][156]){
+void getDominoID(cv::Mat domino, float dominoID[][128]){
     int i, j, k, m = 0;
     int counter = 0;
+
+    cv::resize(domino, domino, cv::Size(64, 128));
+
     // Mat where the Gray image output will be saved
     cv::Mat dominogray(domino.size().height, domino.size().width, CV_8U);
     cv::cvtColor(domino, dominogray, cv::COLOR_RGB2GRAY);
@@ -181,7 +184,7 @@ void getDominoID(cv::Mat domino, float dominoID[][156]){
     // Normalizing the two vectors
     float max = 0;
     for(i=0; i<2; i++){
-        for(j=0; j<156; j++){
+        for(j=0; j<128; j++){
             if(dominoID[i][j] > max)
                 max = dominoID[i][j];
         }

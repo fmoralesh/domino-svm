@@ -31,11 +31,10 @@ int main(int argv, char** argc) {
 	else 
 		imageName = "domino.jpeg";
 
-	int i, j;
 	int n_dominos=0;
-	float dominosID[100][156];
-	for(i=0; i<100; i++){
-		for(j=0; j<156; j++){
+	float dominosID[100][128];
+	for(int i=0; i<100; i++){
+		for(int j=0; j<128; j++){
 			dominosID[i][j] = 0;
 		}
 	}
@@ -93,15 +92,15 @@ int main(int argv, char** argc) {
 
 			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
 			if (mincos >= -0.3 && maxcos <= 0.5) {
-				float dominoID[2][156];
-				for(i=0; i<2; i++){
-					for(j=0; j<156; j++){
-						dominoID[i][j] = 0;
+				float dominoID[2][128];
+				for(int k=0; k<2; k++){
+					for(int m=0; m<128; m++){
+						dominoID[k][m] = 0;
 					}
 				}
 				Point2f center(0, 0);
-				for (int i = 0; i < approx.size(); i++) {
-					center += approx[i];
+				for (int k = 0; k < approx.size(); k++) {
+					center += approx[k];
 				}
 				center *= (1. / approx.size());
 				sortCorners(approx, center);
@@ -139,16 +138,19 @@ int main(int argv, char** argc) {
 				warpPerspective(src, quad, transmtx, quad.size());
 				stringstream ss;
 				ss << i << ".jpg";
-
+				//imshow(ss.str(), quad);
 				getDominoID(quad, dominoID);
-				for(int i=0; i<2; i++){
-					for(int j=0; j<185; j++){
-						dominosID[n_dominos][j] = dominoID[i][j];
-						std::cout << dominosID[n_dominos][j] << std::endl;
+				for(int k=0; k<1; k++){
+					std::cout << "Primera Mitad -----------------" << std::endl;
+					for(int m=0; m<128; m++){
+						dominosID[n_dominos][m] = dominoID[k][m];
+						std::cout << dominosID[n_dominos][m] << std::endl;
+						if(m == 64){
+							std::cout << "Segunda Mitad -----------------" << std::endl;
+						}
 					}
-					n_dominos++;
 				}
-				
+				n_dominos++;
 				waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
