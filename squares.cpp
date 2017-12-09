@@ -140,7 +140,7 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
     imshow(wndname, image);
 }
 
-void getDominoID(cv::Mat domino, float dominoID[][185]){
+void getDominoID(cv::Mat domino, float dominoID[][156]){
     int i, j, k, m = 0;
     int counter = 0;
     // Mat where the Gray image output will be saved
@@ -159,7 +159,7 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
     // Make the process for first and second half of the domino
     for(k=0; k<2; k++){
         // Make the horizontal sum of values
-        for(i=dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+        for(i=dominoOTSU.size().height*(k/2); i<dominoOTSU.size().height*(k/2) + dominoOTSU.size().height/2; i++){
             for(j=0; j<dominoOTSU.size().width; j++){
                 if(dominoOTSU.at<unsigned char>(i,j) >= 0)
                     counter += (int)dominoOTSU.at<unsigned char>(i,j);
@@ -169,7 +169,7 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
         }
         // Make the vertical sum of values
         for(j=0; j<dominoOTSU.size().width; j++){
-            for(i= dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+            for(i= dominoOTSU.size().height*(k/2); i<dominoOTSU.size().height*(k/2) + dominoOTSU.size().height/2; i++){
                 if(dominoOTSU.at<unsigned char>(i,j) >= 0)
                     counter += (int)dominoOTSU.at<unsigned char>(i,j);
             }
@@ -181,12 +181,12 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
     // Normalizing the two vectors
     float max = 0;
     for(i=0; i<2; i++){
-        for(j=0; j<178; j++){
+        for(j=0; j<156; j++){
             if(dominoID[i][j] > max)
                 max = dominoID[i][j];
         }
         if(max!=0){
-            for(j=0; j<178; j++){
+            for(j=0; j<156; j++){
                 dominoID[i][j] = dominoID[i][j]/max; 
             }
         }

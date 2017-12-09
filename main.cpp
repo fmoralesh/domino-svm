@@ -31,12 +31,11 @@ int main(int argv, char** argc) {
 	else 
 		imageName = "domino.jpeg";
 
-int main() {
 	int i, j;
 	int n_dominos=0;
-	float dominosID[100][185];
+	float dominosID[100][156];
 	for(i=0; i<100; i++){
-		for(j=0; j<185; j++){
+		for(j=0; j<156; j++){
 			dominosID[i][j] = 0;
 		}
 	}
@@ -94,6 +93,12 @@ int main() {
 
 			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
 			if (mincos >= -0.3 && maxcos <= 0.5) {
+				float dominoID[2][156];
+				for(i=0; i<2; i++){
+					for(j=0; j<156; j++){
+						dominoID[i][j] = 0;
+					}
+				}
 				Point2f center(0, 0);
 				for (int i = 0; i < approx.size(); i++) {
 					center += approx[i];
@@ -158,22 +163,7 @@ int main() {
 	imshow("DOMINO TABLE", dst);
 	imwrite("detect_domino.jpg",dst);
 	waitKey(0);
-
-    // In this point the code has to know how many domino's are in the image
-    int n_dominos = 10;
-    
-    // Structure that will contain the information of one domino piece for the SVM
-    float dominosID[2][185];
-    for(int i=0; i<2; i++){
-        for(int j=0; j<185; j++){
-            dominosID[i][j] = 0;
-        }
-    }
-    cv::Mat dominoPiece;
-    dominoPiece = imread("./data/6_0.jpeg");
-    getDominoID(dominoPiece, dominosID);
-
-    cv::waitKey(0);
+	
     return 0;
 }
 
