@@ -212,18 +212,26 @@ int main(int argv, char** argc) {
 		model = svm_load_model("domino-for-libsvm.model");
 		svm_initialize_svm_problem(&prob);
 		getProblemSVM(&prob, training_labels, total_dominos, dominosID);
-		string label;
+		string label, sum_label;
 		Point Center_label;
+		Point Sum_point;
+		Sum_point.x = 50;
+		Sum_point.y = 50;
+		int sum = 0;
 		cnt=0;
 		for(int i=0; i<total_dominos; i+=2){
 			pred_result1 = svm_predict(model, prob.x[i]);
 			pred_result2 = svm_predict(model, prob.x[i+1]);
+			sum = sum + (int)pred_result1 + (int)pred_result2;
 			label = to_string((int)pred_result1)+", "+to_string((int)pred_result2);
 			Center_label.x = (int)center[cnt].x-30;
 			Center_label.y = (int)center[cnt].y;
 			putText(dst, label, Center_label,FONT_HERSHEY_PLAIN,2.0,CV_RGB(255,0,0), 2.0);
 			cnt++;
 		}
+		sum_label = "Suma total: " + to_string(sum);
+		putText(dst, sum_label, Sum_point,FONT_HERSHEY_PLAIN,2.0,CV_RGB(255,0,0), 2.0);
+
 	}
 	//getParamSVM(&param, 256, 0.001953125);
 	//model = svm_train(&prob, &param);
