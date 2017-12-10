@@ -140,9 +140,12 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares )
     imshow(wndname, image);
 }
 
-void getDominoID(cv::Mat domino, float dominoID[][185]){
+void getDominoID(cv::Mat domino, float dominoID[][128]){
     int i, j, k, m = 0;
     int counter = 0;
+
+    cv::resize(domino, domino, cv::Size(64, 128));
+
     // Mat where the Gray image output will be saved
     cv::Mat dominogray(domino.size().height, domino.size().width, CV_8U);
     cv::cvtColor(domino, dominogray, cv::COLOR_RGB2GRAY);
@@ -159,7 +162,7 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
     // Make the process for first and second half of the domino
     for(k=0; k<2; k++){
         // Make the horizontal sum of values
-        for(i=dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+        for(i=dominoOTSU.size().height*(k/2); i<dominoOTSU.size().height*(k/2) + dominoOTSU.size().height/2; i++){
             for(j=0; j<dominoOTSU.size().width; j++){
                 if(dominoOTSU.at<unsigned char>(i,j) >= 0)
                     counter += (int)dominoOTSU.at<unsigned char>(i,j);
@@ -169,7 +172,7 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
         }
         // Make the vertical sum of values
         for(j=0; j<dominoOTSU.size().width; j++){
-            for(i= dominoOTSU.size().height*k; i<dominoOTSU.size().height*k + dominoOTSU.size().height/2; i++){
+            for(i= dominoOTSU.size().height*(k/2); i<dominoOTSU.size().height*(k/2) + dominoOTSU.size().height/2; i++){
                 if(dominoOTSU.at<unsigned char>(i,j) >= 0)
                     counter += (int)dominoOTSU.at<unsigned char>(i,j);
             }
@@ -181,12 +184,12 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
     // Normalizing the two vectors
     float max = 0;
     for(i=0; i<2; i++){
-        for(j=0; j<178; j++){
+        for(j=0; j<128; j++){
             if(dominoID[i][j] > max)
                 max = dominoID[i][j];
         }
         if(max!=0){
-            for(j=0; j<178; j++){
+            for(j=0; j<128; j++){
                 dominoID[i][j] = dominoID[i][j]/max; 
             }
         }
@@ -197,4 +200,42 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
     dominogray.release();
     dominoGauss.release();
     dominoOTSU.release();
+}
+
+void loadLabelstxt(int training_labels[100], int n_dominos){
+    int i;
+    std::ifstream file("training_labels.txt");
+
+    if (file.is_open()){
+        std::string str;
+        for(i=0; i<n_dominos; i++){ 
+            file >> str;       
+            training_labels[i] = atoi(str.c_str());
+        }
+        file.close();
+    } else{
+        std::cout << "Error loading training_labels.txt" << std::endl;
+    }
+}
+
+void saveSVMtxt(int training_labels[100], float dominosID[][128], int n_dominos){
+    int i, k;
+    std::ofstream file("domino-for-libsvm");
+
+    // write the histogram descriptor in a file to use with libsvm library
+    if (file.is_open()){
+        for(i=0; i<n_dominos; i++){
+            file << training_labels[i];
+            file << " ";
+            for(k=0; k < 128; k++){
+                file << k << ":";
+                file << dominosID[i][k];
+                file << " ";
+            }
+            file << std::endl;
+        }
+        file.close();
+    }else{
+        std::cout << "Error saving domino-for-libsvm" << std::endl;
+    } 
 }

@@ -32,6 +32,15 @@ int main(int argv, char** argc) {
 	else 
 		imageName = "domino.jpeg";
 
+	int n_dominos=0;
+	float dominosID[100][128];
+	int training_labels[100];
+	for(int i=0; i<100; i++){
+		training_labels[i] = -1;
+		for(int j=0; j<128; j++){
+			dominosID[i][j] = 0;
+		}
+	}
     // Reading the image.
 	Mat src = imread(imageName);
 	if (src.empty())
@@ -97,9 +106,15 @@ int main(int argv, char** argc) {
 
 			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
 			if (mincos >= -0.3 && maxcos <= 0.5) {
+				float dominoID[2][128];
+				for(int k=0; k<2; k++){
+					for(int m=0; m<128; m++){
+						dominoID[k][m] = 0;
+					}
+				}
 				Point2f center(0, 0);
-				for (int i = 0; i < approx.size(); i++) {
-					center += approx[i];
+				for (int k = 0; k < approx.size(); k++) {
+					center += approx[k];
 				}
 				center *= (1. / approx.size());
 				sortCorners(approx, center);
@@ -139,36 +154,38 @@ int main(int argv, char** argc) {
 				warpPerspective(src, quad, transmtx, quad.size());
 				stringstream ss;
 				ss << i << ".jpg";
-				imshow(ss.str(), quad);
+				//imshow(ss.str(), quad);
+				getDominoID(quad, dominoID);
+				for(int k=0; k<2; k++){
+					//std::cout << "Primera Mitad -----------------" << std::endl;
+					for(int m=0; m<128; m++){
+						dominosID[n_dominos][m] = dominoID[k][m];
+						//std::cout << dominosID[n_dominos][m] << std::endl;
+						if(m == 64){
+						//	std::cout << "Segunda Mitad -----------------" << std::endl;
+						}
+					}
+					n_dominos++;
+				}
 				waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
 		}
 	}
+	std::cout << "Numero de dominos: " << n_dominos/2 << std::endl;
 	// Dibujar los contornos correctos
 	for (int i = 0; i < good_contours.size(); i++) {
 		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 	}
+
+	loadLabelstxt(training_labels, n_dominos);
+	saveSVMtxt(training_labels, dominosID, n_dominos);
+
 	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
 	imshow("DOMINO TABLE", dst);
 	imwrite("detect_domino.jpg",dst);
 	waitKey(0);
-
-    // In this point the code has to know how many domino's are in the image
-    int n_dominos = 10;
-    
-    // Structure that will contain the information of one domino piece for the SVM
-    float dominosID[2][185];
-    for(int i=0; i<2; i++){
-        for(int j=0; j<185; j++){
-            dominosID[i][j] = 0;
-        }
-    }
-    cv::Mat dominoPiece;
-    //dominoPiece = imread("./data/6_0.jpeg");
-    //getDominoID(dominoPiece, dominosID);
-
-    //cv::waitKey(0);
+	
     return 0;
 }
 
