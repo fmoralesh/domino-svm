@@ -27,9 +27,11 @@ double euclideanDistance(Point2f pt1, Point2f pt2);
 
 int main(int argv, char** argc) {
 	string imageName[5];
-	
+	int n_dominos[5];
+	int aux = 0;
 	for(int i = 0; i<5; i++){
-		imageName[i] = "./data/training_set/" + to_string(i) + ".jpeg";
+		imageName[i] = "./data/training_set/" + to_string(i+1) + ".jpeg";
+		n_dominos[i] = 0;
 	}
 	
 	struct svm_problem prob;
@@ -37,10 +39,9 @@ int main(int argv, char** argc) {
     struct svm_model *model;
     struct svm_grid grid_params;
 
-	int n_dominos=0;
-	float dominosID[100][128];
+	float dominosID[500][128];
 	int training_labels[100];
-	for(int i=0; i<100; i++){
+	for(int i=0; i<500; i++){
 		training_labels[i] = -1;
 		for(int j=0; j<128; j++){
 			dominosID[i][j] = 0;
@@ -52,7 +53,7 @@ int main(int argv, char** argc) {
 		Mat src = imread(imageName[f]);
 		if (src.empty())
 			return -1;
-
+		imshow("Imagen " + to_string(f+1), src);
 		std::vector<vector<Point> > squares;
 		//findSquares(src, squares);
 		//drawSquares(src, squares);
@@ -151,21 +152,18 @@ int main(int argv, char** argc) {
 					Mat transmtx = getPerspectiveTransform(approx, quad_pts);
 					// aplicar transformacion de perspectiva 
 					warpPerspective(src, quad, transmtx, quad.size());
-					stringstream ss;
-					ss << i << ".jpg";
-					//imshow(ss.str(), quad);
-					//waitKey(0);
 					getDominoID(quad, dominoID);
 					for(int k=0; k<2; k++){
 						//std::cout << "Primera Mitad -----------------" << std::endl;
 						for(int m=0; m<128; m++){
-							dominosID[n_dominos][m] = dominoID[k][m];
+							dominosID[aux][m] = dominoID[k][m];
 							//std::cout << dominosID[n_dominos][m] << std::endl;
 							if(m == 64){
 							//	std::cout << "Segunda Mitad -----------------" << std::endl;
 							}
 						}
-						n_dominos++;
+						aux++;
+						n_dominos[f]++;
 					}
 					//waitKey(0);
 				}
@@ -173,18 +171,25 @@ int main(int argv, char** argc) {
 			}
 		}
 	
-		std::cout << "Numero de dominos: " << n_dominos/2 << std::endl;
+		std::cout << "Numero de dominos para la imagen " << to_string(f+1) << ": " << n_dominos[f]/2 << std::endl;
 		// Dibujar los contornos correctos
 		for (int i = 0; i < good_contours.size(); i++) {
-			drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
+			//drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 		}
-		namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
-		imshow("DOMINO TABLE", dst);
-		imwrite("detect_domino.jpg",dst);
+		//namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
+		//imshow("DOMINO TABLE", dst);
+		//imwrite("detect_domino.jpg",dst);
+		//waitKey(0);
+		//destroyAllWindows();
 	}
-
-	loadLabelstxt(training_labels, n_dominos);
-	saveSVMtxt(training_labels, dominosID, n_dominos);
+	int total_dominos = 0;
+	for(int f=0; f<5; f++)
+		total_dominos = total_dominos + n_dominos[f];
+	
+	std::cout << "Numero de mitades de dominos totales: " << total_dominos << std::endl;
+	loadLabelstxt(training_labels, total_dominos);
+	saveSVMtxt(training_labels, dominosID, total_dominos);
+	/*
 	svm_initialize_svm_problem(&prob);
 	getProblemSVM(&prob, training_labels, n_dominos, dominosID);
 
@@ -201,7 +206,7 @@ int main(int argv, char** argc) {
 	svm_save_model("domino-FULL.model", model); 
 	std::cout << "Best C: " << grid_params.best_c << " Best gamma: " << grid_params.best_g << std::endl;
 	//svm_predict(&model, const svm_node *x);
-
+*/
 
 	waitKey(0);
 	
