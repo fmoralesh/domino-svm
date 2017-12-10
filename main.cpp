@@ -22,6 +22,7 @@ using namespace std;
 static double getAngle(Point pt1, Point pt2, Point pt0);
 void sortCorners(vector<Point2f>& corners, Point2f center);
 bool comparator(Point2f a, Point2f b);
+double euclideanDistance(Point2f pt1, Point2f pt2);
 
 int main(int argv, char** argc) {
 	string imageName;
@@ -49,6 +50,7 @@ int main(int argv, char** argc) {
     //findSquares(src, squares);
     //drawSquares(src, squares);
 	vector< vector<Point> > good_contours;
+	vector<RotatedRect> minRect;
 	vector< Point > corners;
 
 	// convertir a escala de grises
@@ -56,8 +58,18 @@ int main(int argv, char** argc) {
 	cvtColor(src, gray, CV_BGR2GRAY);
 
 	// filtro canny de bordes
-	Mat bw;
-	Canny(gray, bw, 0, 50, 5);
+	Mat bw, blur, otsu;
+		imshow("prueba", gray);
+		waitKey(0);
+	GaussianBlur(gray, blur, Size(9,9),0 ,0);
+		imshow("prueba", blur);
+		waitKey(0);
+	threshold(blur, otsu, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+		imshow("prueba", otsu);
+		waitKey(0);
+	Canny(otsu, bw, 0, 50, 5);
+		imshow("prueba", bw);
+		waitKey(0);
 
 	// Encontrar contornos
 	vector<vector<Point> > contours;
@@ -69,7 +81,7 @@ int main(int argv, char** argc) {
 	for (int i = 0; i < contours.size(); i++) {
 		// Se aproximan los contornos a figuras simples
 		// a partir de su perimetro
-		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.05, true);
+		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.04, true);
 
 		// Si el objeto es muy pequeño
 		if (fabs(contourArea(contours[i])) < 100 || !isContourConvex(approx))
@@ -106,12 +118,14 @@ int main(int argv, char** argc) {
 				}
 				center *= (1. / approx.size());
 				sortCorners(approx, center);
-
+				int w1 = (int)euclideanDistance(approx[0], approx[1]);
+				int h1 = (int)euclideanDistance(approx[1], approx[2]);
 				Rect r = boundingRect(approx);
 				if (r.area() < 5000)continue;
 				
 				// puntos finales para la transformacion de la imagen
-				int h = r.height, w = r.width;
+				//int h = r.height, w = r.width;
+				int h = h1, w = w1;
 				Point2f t1, t2, t3, t4;
 				if (r.width > r.height) {
 					h = r.width;
@@ -209,4 +223,8 @@ static double getAngle(Point pt1, Point pt2, Point pt0) {
 	double dx2 = pt2.x - pt0.x;
 	double dy2 = pt2.y - pt0.y;
 	return (dx1*dx2 + dy1*dy2) / sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
+}
+
+double euclideanDistance(Point2f pt1, Point2f pt2){
+	return pow(pow(pt1.x - pt2.x,2) + pow(pt1.y - pt2.y,2), 0.5);
 }
