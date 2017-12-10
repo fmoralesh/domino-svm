@@ -153,7 +153,7 @@ void getDominoID(cv::Mat domino, float dominoID[][185]){
 
     // Mat where the OTSU output will be saved
     cv::Mat dominoOTSU(dominoGauss.size().height, dominoGauss.size().width, CV_8U);
-    cv::threshold(dominoGauss, dominoOTSU, 0, 255, CV_THRESH_OTSU);
+    cv::threshold(dominoGauss, dominoOTSU, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
     imshow("OTSU", dominoOTSU);
     // Make the process for first and second half of the domino
