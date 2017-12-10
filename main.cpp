@@ -26,36 +26,48 @@ bool comparator(Point2f a, Point2f b);
 double euclideanDistance(Point2f pt1, Point2f pt2);
 
 int main(int argv, char** argc) {
+	vector<Point2f> center;
 	string imageName[5];
 	int n_dominos[5];
 	int aux = 0;
-	for(int i = 0; i<5; i++){
-		imageName[i] = "./data/training_set/" + to_string(i+1) + ".jpeg";
-		n_dominos[i] = 0;
+	int x;
+	bool train = false;
+	if(train){ 
+		for(int i = 0; i<5; i++){
+			imageName[i] = "./data/training_set/" + to_string(i+1) + ".jpeg";
+			n_dominos[i] = 0;
+		}
+		x = 1;
+	}else{
+		x = 5;
+		imageName[0] = "./data/predict_set/5.jpeg";
+		n_dominos[0] = 0;
 	}
-	
+
 	struct svm_problem prob;
     struct svm_parameter param;
     struct svm_model *model;
     struct svm_grid grid_params;
 	double pred_result1 = 0, pred_result2 = 0;
-	int n_dominos=0, cnt=0;
+	int cnt=0;
+	Mat dst;
 
 	float dominosID[500][128];
-	int training_labels[100];
+	int training_labels[500];
 	for(int i=0; i<500; i++){
 		training_labels[i] = -1;
 		for(int j=0; j<128; j++){
 			dominosID[i][j] = 0;
 		}
 	}
+	
 
-	for(int f=0; f<5; f++){
+	for(int f=0; f<5/x; f++){
 		// Reading the image.
 		Mat src = imread(imageName[f]);
 		if (src.empty())
 			return -1;
-		imshow("Imagen " + to_string(f+1), src);
+		//imshow("Imagen " + to_string(f+1), src);
 		std::vector<vector<Point> > squares;
 		//findSquares(src, squares);
 		//drawSquares(src, squares);
@@ -66,7 +78,7 @@ int main(int argv, char** argc) {
 		// convertir a escala de grises
 		Mat gray;
 		cvtColor(src, gray, CV_BGR2GRAY);
-	model = svm_load_model("domino-FULL.model");
+	
 
 		// filtro canny de bordes
 		Mat bw, blur, otsu;
@@ -79,7 +91,7 @@ int main(int argv, char** argc) {
 		findContours(bw.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
 		vector<Point2f> approx;
-		Mat dst = src.clone();
+		dst = src.clone();
 
 		for (int i = 0; i < contours.size(); i++) {
 			// Se aproximan los contornos a figuras simples
@@ -115,72 +127,72 @@ int main(int argv, char** argc) {
 							dominoID[k][m] = 0;
 						}
 					}
-				}
-				center.push_back(Point2f(0,0));
-				for (int k = 0; k < approx.size(); k++) {
-					center[cnt] += approx[k];
-				}
-				center[cnt] *= (1. / approx.size());
-				sortCorners(approx, center[cnt]);
-				cnt++;
-				
-				int w1 = (int)euclideanDistance(approx[0], approx[1]);
-				int h1 = (int)euclideanDistance(approx[1], approx[2]);
-				Rect r = boundingRect(approx);
-				if (r.area() < 5000)continue;
-				
-				// puntos finales para la transformacion de la imagen
-				//int h = r.height, w = r.width;
-				int h = h1, w = w1;
-				Point2f t1, t2, t3, t4;
-				if (r.width > r.height) {
-					h = r.width;
-					w = r.height;
-					t1 = Point2f(w, 0);
-					t2 = Point2f(w, h);
-					t3 = Point2f(0, h);
-					t4 = Point2f(0, 0);
-				}
-				else {
-					t1 = Point2f(0, 0);
-					t2 = Point2f(w, 0);
-					t3 = Point2f(w, h);
-					t4 = Point2f(0, h);
-				}
-				Mat quad = Mat::zeros(h, w, CV_8UC3);
-
-					vector<Point2f> quad_pts;
-					quad_pts.push_back(t1);
-					quad_pts.push_back(t2);
-					quad_pts.push_back(t3);
-					quad_pts.push_back(t4);
-					// matriz de transformacion
-					Mat transmtx = getPerspectiveTransform(approx, quad_pts);
-					// aplicar transformacion de perspectiva 
-					warpPerspective(src, quad, transmtx, quad.size());
-					getDominoID(quad, dominoID);
-					for(int k=0; k<2; k++){
-						//std::cout << "Primera Mitad -----------------" << std::endl;
-						for(int m=0; m<128; m++){
-							dominosID[aux][m] = dominoID[k][m];
-							//std::cout << dominosID[n_dominos][m] << std::endl;
-							if(m == 64){
-							//	std::cout << "Segunda Mitad -----------------" << std::endl;
-							}
-						}
-						aux++;
-						n_dominos[f]++;
+					
+					center.push_back(Point2f(0,0));
+					for (int k = 0; k < approx.size(); k++) {
+						center[cnt] += approx[k];
 					}
-					//waitKey(0);
+					center[cnt] *= (1. / approx.size());
+					sortCorners(approx, center[cnt]);
+					cnt++;
+					
+					int w1 = (int)euclideanDistance(approx[0], approx[1]);
+					int h1 = (int)euclideanDistance(approx[1], approx[2]);
+					Rect r = boundingRect(approx);
+					if (r.area() < 5000)continue;
+					
+					// puntos finales para la transformacion de la imagen
+					//int h = r.height, w = r.width;
+					int h = h1, w = w1;
+					Point2f t1, t2, t3, t4;
+					if (r.width > r.height) {
+						h = r.width;
+						w = r.height;
+						t1 = Point2f(w, 0);
+						t2 = Point2f(w, h);
+						t3 = Point2f(0, h);
+						t4 = Point2f(0, 0);
+					}
+					else {
+						t1 = Point2f(0, 0);
+						t2 = Point2f(w, 0);
+						t3 = Point2f(w, h);
+						t4 = Point2f(0, h);
+					}
+					Mat quad = Mat::zeros(h, w, CV_8UC3);
+
+						vector<Point2f> quad_pts;
+						quad_pts.push_back(t1);
+						quad_pts.push_back(t2);
+						quad_pts.push_back(t3);
+						quad_pts.push_back(t4);
+						// matriz de transformacion
+						Mat transmtx = getPerspectiveTransform(approx, quad_pts);
+						// aplicar transformacion de perspectiva 
+						warpPerspective(src, quad, transmtx, quad.size());
+						getDominoID(quad, dominoID);
+						for(int k=0; k<2; k++){
+							//std::cout << "Primera Mitad -----------------" << std::endl;
+							for(int m=0; m<128; m++){
+								dominosID[aux][m] = dominoID[k][m];
+								//std::cout << dominosID[n_dominos][m] << std::endl;
+								if(m == 64){
+								//	std::cout << "Segunda Mitad -----------------" << std::endl;
+								}
+							}
+							aux++;
+							n_dominos[f]++;
+						}
+						//waitKey(0);
+					}
+					good_contours.push_back(contours[i]);
 				}
-				good_contours.push_back(contours[i]);
 			}
-		}
 	
 		std::cout << "Numero de dominos para la imagen " << to_string(f+1) << ": " << n_dominos[f]/2 << std::endl;
 		// Dibujar los contornos correctos
 		for (int i = 0; i < good_contours.size(); i++) {
-			//drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
+			drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 		}
 		//namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
 		//imshow("DOMINO TABLE", dst);
@@ -192,23 +204,26 @@ int main(int argv, char** argc) {
 	for(int f=0; f<5; f++)
 		total_dominos = total_dominos + n_dominos[f];
 	
-	std::cout << "Numero de mitades de dominos totales: " << total_dominos << std::endl;
-	loadLabelstxt(training_labels, total_dominos);
-	saveSVMtxt(training_labels, dominosID, total_dominos);
-	/*
-	svm_initialize_svm_problem(&prob);
-	getProblemSVM(&prob, training_labels, n_dominos, dominosID);
-	string label;
-	Point Center_label;
-	cnt=0;
-	for(int i=0; i<n_dominos; i+=2){
-		pred_result1 = svm_predict(model, prob.x[i]);
-		pred_result2 = svm_predict(model, prob.x[i+1]);
-		label = to_string((int)pred_result1)+", "+to_string((int)pred_result2);
-		Center_label.x = (int)center[cnt].x-30;
-		Center_label.y = (int)center[cnt].y;
-		putText(dst, label, Center_label,FONT_HERSHEY_PLAIN,2.0,CV_RGB(255,0,0), 2.0);
-		cnt++;
+	if(train){
+		std::cout << "Numero de mitades de dominos totales: " << total_dominos << std::endl;
+		loadLabelstxt(training_labels, total_dominos);
+		saveSVMtxt(training_labels, dominosID, total_dominos);
+	}else{
+		model = svm_load_model("domino-for-libsvm.model");
+		svm_initialize_svm_problem(&prob);
+		getProblemSVM(&prob, training_labels, total_dominos, dominosID);
+		string label;
+		Point Center_label;
+		cnt=0;
+		for(int i=0; i<total_dominos; i+=2){
+			pred_result1 = svm_predict(model, prob.x[i]);
+			pred_result2 = svm_predict(model, prob.x[i+1]);
+			label = to_string((int)pred_result1)+", "+to_string((int)pred_result2);
+			Center_label.x = (int)center[cnt].x-30;
+			Center_label.y = (int)center[cnt].y;
+			putText(dst, label, Center_label,FONT_HERSHEY_PLAIN,2.0,CV_RGB(255,0,0), 2.0);
+			cnt++;
+		}
 	}
 	//getParamSVM(&param, 256, 0.001953125);
 	//model = svm_train(&prob, &param);
@@ -219,7 +234,7 @@ int main(int argv, char** argc) {
 	imshow("DOMINO TABLE", dst);
 	imwrite("detect_domino.jpg",dst);
 	waitKey(0);
-	
+
     return 0;
 }
 
