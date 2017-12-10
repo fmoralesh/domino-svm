@@ -38,6 +38,8 @@ int main(int argv, char** argc) {
     struct svm_parameter param;
     struct svm_model *model;
     struct svm_grid grid_params;
+	double pred_result1 = 0, pred_result2 = 0;
+	int n_dominos=0, cnt=0;
 
 	float dominosID[500][128];
 	int training_labels[100];
@@ -64,6 +66,7 @@ int main(int argv, char** argc) {
 		// convertir a escala de grises
 		Mat gray;
 		cvtColor(src, gray, CV_BGR2GRAY);
+	model = svm_load_model("domino-FULL.model");
 
 		// filtro canny de bordes
 		Mat bw, blur, otsu;
@@ -112,36 +115,39 @@ int main(int argv, char** argc) {
 							dominoID[k][m] = 0;
 						}
 					}
-					Point2f center(0, 0);
-					for (int k = 0; k < approx.size(); k++) {
-						center += approx[k];
-					}
-					center *= (1. / approx.size());
-					sortCorners(approx, center);
-					int w1 = (int)euclideanDistance(approx[0], approx[1]);
-					int h1 = (int)euclideanDistance(approx[1], approx[2]);
-					Rect r = boundingRect(approx);
-					if (r.area() < 5000)continue;
-					
-					// puntos finales para la transformacion de la imagen
-					//int h = r.height, w = r.width;
-					int h = h1, w = w1;
-					Point2f t1, t2, t3, t4;
-					if (r.width > r.height) {
-						h = r.width;
-						w = r.height;
-						t1 = Point2f(w, 0);
-						t2 = Point2f(w, h);
-						t3 = Point2f(0, h);
-						t4 = Point2f(0, 0);
-					}
-					else {
-						t1 = Point2f(0, 0);
-						t2 = Point2f(w, 0);
-						t3 = Point2f(w, h);
-						t4 = Point2f(0, h);
-					}
-					Mat quad = Mat::zeros(h, w, CV_8UC3);
+				}
+				center.push_back(Point2f(0,0));
+				for (int k = 0; k < approx.size(); k++) {
+					center[cnt] += approx[k];
+				}
+				center[cnt] *= (1. / approx.size());
+				sortCorners(approx, center[cnt]);
+				cnt++;
+				
+				int w1 = (int)euclideanDistance(approx[0], approx[1]);
+				int h1 = (int)euclideanDistance(approx[1], approx[2]);
+				Rect r = boundingRect(approx);
+				if (r.area() < 5000)continue;
+				
+				// puntos finales para la transformacion de la imagen
+				//int h = r.height, w = r.width;
+				int h = h1, w = w1;
+				Point2f t1, t2, t3, t4;
+				if (r.width > r.height) {
+					h = r.width;
+					w = r.height;
+					t1 = Point2f(w, 0);
+					t2 = Point2f(w, h);
+					t3 = Point2f(0, h);
+					t4 = Point2f(0, 0);
+				}
+				else {
+					t1 = Point2f(0, 0);
+					t2 = Point2f(w, 0);
+					t3 = Point2f(w, h);
+					t4 = Point2f(0, h);
+				}
+				Mat quad = Mat::zeros(h, w, CV_8UC3);
 
 					vector<Point2f> quad_pts;
 					quad_pts.push_back(t1);
@@ -192,22 +198,26 @@ int main(int argv, char** argc) {
 	/*
 	svm_initialize_svm_problem(&prob);
 	getProblemSVM(&prob, training_labels, n_dominos, dominosID);
-
-	grid_params.min  = -10;
-	grid_params.max  = 10;
-	grid_params.step = 1;
-	grid_params.best_c =0;
-	grid_params.best_g =0;
-	bestParametersSVM(prob, param, &grid_params);
-
-	getParamSVM(&param, exp2(grid_params.best_c), exp2(grid_params.best_g));
-	
-	model = svm_train(&prob, &param);
-	svm_save_model("domino-FULL.model", model); 
-	std::cout << "Best C: " << grid_params.best_c << " Best gamma: " << grid_params.best_g << std::endl;
-	//svm_predict(&model, const svm_node *x);
-*/
-
+	string label;
+	Point Center_label;
+	cnt=0;
+	for(int i=0; i<n_dominos; i+=2){
+		pred_result1 = svm_predict(model, prob.x[i]);
+		pred_result2 = svm_predict(model, prob.x[i+1]);
+		label = to_string((int)pred_result1)+", "+to_string((int)pred_result2);
+		Center_label.x = (int)center[cnt].x-30;
+		Center_label.y = (int)center[cnt].y;
+		putText(dst, label, Center_label,FONT_HERSHEY_PLAIN,2.0,CV_RGB(255,0,0), 2.0);
+		cnt++;
+	}
+	//getParamSVM(&param, 256, 0.001953125);
+	//model = svm_train(&prob, &param);
+	//svm_save_model("domino-FULL.model", model); 
+	//pred_result = svm_predict(model, const svm_node *x);
+	// center[cnt]
+	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
+	imshow("DOMINO TABLE", dst);
+	imwrite("detect_domino.jpg",dst);
 	waitKey(0);
 	
     return 0;
