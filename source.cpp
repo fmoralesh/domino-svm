@@ -1,11 +1,3 @@
-/*********************************************
- * FILE NAME: main.cpp                       *
- * DESCRIPTION: main function for our        *
- *              domino recognizing algorit   *
- * AUTHORS: Diego Pe√±a, Victor Garc√≠a,       *
- *          Fabio Morales, Andreina Duarte   *
- *********************************************/
-// Windows Include version
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <cmath>
@@ -13,31 +5,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-#include <iostream>
 
-#include "squares.h"
+using namespace cv;
+using namespace std;
 
 static double angle(Point pt1, Point pt2, Point pt0);
 void sortCorners(vector<Point2f>& corners, Point2f center);
 bool comparator(Point2f a, Point2f b);
 
-using namespace cv;
-using namespace std;
+int main()
+{
+	vector<vector<Point>> good_contours;
+	vector<Point> corners;
 
-int main() {
-    // Reading the image.
 	Mat src = imread("domino.jpeg");
 	if (src.empty())
 		return -1;
-
-    std::vector<vector<Point> > squares;
-    //findSquares(src, squares);
-    //drawSquares(src, squares);
-	vector< vector<Point> > good_contours;
-	vector< Point > corners;
 
 	// convertir a escala de grises
 	Mat gray;
@@ -60,7 +43,7 @@ int main() {
 		// a partir de su perimetro
 		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.02, true);
 
-		// Si el objeto es muy peque√±o
+		// Si el objeto es muy pequeÒo
 		if (fabs(contourArea(contours[i])) < 100 || !isContourConvex(approx))
 			continue;
 		
@@ -124,6 +107,7 @@ int main() {
 				stringstream ss;
 				ss << i << ".jpg";
 				imshow(ss.str(), quad);
+				imwrite("dominÛ.jpg", quad);
 				waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
@@ -139,7 +123,6 @@ int main() {
 	waitKey(0);
 	return 0;
 }
-
 
 // Funcion para ordenar las esquinas del cuadrado, top left, top right, bottom right bottom lefh
 void sortCorners(vector<Point2f>& corners, Point2f center) {
