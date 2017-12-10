@@ -163,6 +163,10 @@ int main(int argv, char** argc) {
 	for (int i = 0; i < good_contours.size(); i++) {
 		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
 	}
+
+	loadLabelstxt(training_labels, n_dominos);
+	saveSVMtxt(training_labels, dominosID, n_dominos);
+
 	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
 	imshow("DOMINO TABLE", dst);
 	imwrite("detect_domino.jpg",dst);

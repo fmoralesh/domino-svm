@@ -201,3 +201,41 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
     dominoGauss.release();
     dominoOTSU.release();
 }
+
+void loadLabelstxt(int training_labels[100], int n_dominos){
+    int i;
+    std::ifstream file("training_labels.txt");
+
+    if (file.is_open()){
+        std::string str;
+        for(i=0; i<n_dominos; i++){ 
+            file >> str;       
+            training_labels[i] = atoi(str.c_str());
+        }
+        file.close();
+    } else{
+        std::cout << "Error loading training_labels.txt" << std::endl;
+    }
+}
+
+void saveSVMtxt(int training_labels[100], float dominosID[][128], int n_dominos){
+    int i, k;
+    std::ofstream file("domino-for-libsvm");
+
+    // write the histogram descriptor in a file to use with libsvm library
+    if (file.is_open()){
+        for(i=0; i<n_dominos; i++){
+            file << training_labels[i];
+            file << " ";
+            for(k=0; k < 128; k++){
+                file << k << ":";
+                file << dominosID[i][k];
+                file << " ";
+            }
+            file << std::endl;
+        }
+        file.close();
+    }else{
+        std::cout << "Error saving domino-for-libsvm" << std::endl;
+    } 
+}

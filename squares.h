@@ -14,6 +14,10 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <stdlib.h> 
+#include <iomanip>
+
 
 using namespace cv;
 using namespace std;
@@ -25,5 +29,8 @@ void drawSquares( Mat& image, const vector<vector<Point> >& squares );
 int numberSquares(vector<vector<Point> >& squares );
 
 void getDominoID(cv::Mat domino, float dominosID[][128]);
+
+void loadLabelstxt(int training_labels[100], int n_dominos);
+void saveSVMtxt(int training_labels[100], float dominosID[][128], int n_dominos);
 
 #endif
