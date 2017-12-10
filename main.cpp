@@ -30,7 +30,7 @@ int main(int argv, char** argc) {
 		imageName = argc[1];
 	}
 	else 
-		imageName = "domino.jpeg";
+		imageName = "./data/1.jpeg";
 
 	int n_dominos=0;
 	float dominosID[100][128];
@@ -59,17 +59,9 @@ int main(int argv, char** argc) {
 
 	// filtro canny de bordes
 	Mat bw, blur, otsu;
-		imshow("prueba", gray);
-		waitKey(0);
 	GaussianBlur(gray, blur, Size(9,9),0 ,0);
-		imshow("prueba", blur);
-		waitKey(0);
 	threshold(blur, otsu, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-		imshow("prueba", otsu);
-		waitKey(0);
 	Canny(otsu, bw, 0, 50, 5);
-		imshow("prueba", bw);
-		waitKey(0);
 
 	// Encontrar contornos
 	vector<vector<Point> > contours;
@@ -155,6 +147,7 @@ int main(int argv, char** argc) {
 				stringstream ss;
 				ss << i << ".jpg";
 				//imshow(ss.str(), quad);
+				//waitKey(0);
 				getDominoID(quad, dominoID);
 				for(int k=0; k<2; k++){
 					//std::cout << "Primera Mitad -----------------" << std::endl;
@@ -167,7 +160,7 @@ int main(int argv, char** argc) {
 					}
 					n_dominos++;
 				}
-				waitKey(0);
+				//waitKey(0);
 			}
 			good_contours.push_back(contours[i]);
 		}

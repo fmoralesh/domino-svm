@@ -157,8 +157,8 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
     // Mat where the OTSU output will be saved
     cv::Mat dominoOTSU(dominoGauss.size().height, dominoGauss.size().width, CV_8U);
     cv::threshold(dominoGauss, dominoOTSU, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-    
-    imshow("OTSU", dominoOTSU);
+
+    //imshow("OTSU", dominoOTSU);
     // Make the process for first and second half of the domino
     for(k=0; k<2; k++){
         // Make the horizontal sum of values
@@ -204,7 +204,12 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
 
 void loadLabelstxt(int training_labels[100], int n_dominos){
     int i;
-    std::ifstream file("training_labels.txt");
+    string fileName = "training_labels1.txt";
+    
+    //if(n_dominos < 25)
+    //    fileName = "training_labels10.txt";
+
+    std::ifstream file(fileName);
 
     if (file.is_open()){
         std::string str;
