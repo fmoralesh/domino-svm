@@ -15,6 +15,7 @@
 #include <string>
 #include <cmath>
 #include "squares.h"
+#include "svm.h"
 
 using namespace cv;
 using namespace std;
@@ -31,6 +32,11 @@ int main(int argv, char** argc) {
 	}
 	else 
 		imageName = "./data/1.jpeg";
+
+	struct svm_problem prob;
+    struct svm_parameter param;
+    struct svm_model *model;
+    struct svm_grid grid_params;
 
 	int n_dominos=0;
 	float dominosID[100][128];
@@ -173,6 +179,22 @@ int main(int argv, char** argc) {
 
 	loadLabelstxt(training_labels, n_dominos);
 	saveSVMtxt(training_labels, dominosID, n_dominos);
+	svm_initialize_svm_problem(&prob);
+	getProblemSVM(&prob, training_labels, n_dominos, dominosID);
+
+	grid_params.min  = -10;
+	grid_params.max  = 10;
+	grid_params.step = 1;
+	grid_params.best_c =0;
+	grid_params.best_g =0;
+	bestParametersSVM(prob, param, &grid_params);
+
+	getParamSVM(&param, exp2(grid_params.best_c), exp2(grid_params.best_g));
+	
+	model = svm_train(&prob, &param);
+	svm_save_model("domino-FULL.model", model); 
+	std::cout << "Best C: " << grid_params.best_c << " Best gamma: " << grid_params.best_g << std::endl;
+	//svm_predict(&model, const svm_node *x);
 
 	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
 	imshow("DOMINO TABLE", dst);
