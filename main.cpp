@@ -26,13 +26,12 @@ bool comparator(Point2f a, Point2f b);
 double euclideanDistance(Point2f pt1, Point2f pt2);
 
 int main(int argv, char** argc) {
-	string imageName;
-	if(argv > 1){
-		imageName = argc[1];
+	string imageName[5];
+	
+	for(int i = 0; i<5; i++){
+		imageName[i] = "./data/training_set/" + to_string(i) + ".jpeg";
 	}
-	else 
-		imageName = "./data/1.jpeg";
-
+	
 	struct svm_problem prob;
     struct svm_parameter param;
     struct svm_model *model;
@@ -47,134 +46,141 @@ int main(int argv, char** argc) {
 			dominosID[i][j] = 0;
 		}
 	}
-    // Reading the image.
-	Mat src = imread(imageName);
-	if (src.empty())
-		return -1;
 
-    std::vector<vector<Point> > squares;
-    //findSquares(src, squares);
-    //drawSquares(src, squares);
-	vector< vector<Point> > good_contours;
-	vector<RotatedRect> minRect;
-	vector< Point > corners;
+	for(int f=0; f<5; f++){
+		// Reading the image.
+		Mat src = imread(imageName[f]);
+		if (src.empty())
+			return -1;
 
-	// convertir a escala de grises
-	Mat gray;
-	cvtColor(src, gray, CV_BGR2GRAY);
+		std::vector<vector<Point> > squares;
+		//findSquares(src, squares);
+		//drawSquares(src, squares);
+		vector< vector<Point> > good_contours;
+		vector<RotatedRect> minRect;
+		vector< Point > corners;
 
-	// filtro canny de bordes
-	Mat bw, blur, otsu;
-	GaussianBlur(gray, blur, Size(9,9),0 ,0);
-	threshold(blur, otsu, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-	Canny(otsu, bw, 0, 50, 5);
+		// convertir a escala de grises
+		Mat gray;
+		cvtColor(src, gray, CV_BGR2GRAY);
 
-	// Encontrar contornos
-	vector<vector<Point> > contours;
-	findContours(bw.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		// filtro canny de bordes
+		Mat bw, blur, otsu;
+		GaussianBlur(gray, blur, Size(9,9),0 ,0);
+		threshold(blur, otsu, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+		Canny(otsu, bw, 0, 50, 5);
 
-	vector<Point2f> approx;
-	Mat dst = src.clone();
+		// Encontrar contornos
+		vector<vector<Point> > contours;
+		findContours(bw.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
 
-	for (int i = 0; i < contours.size(); i++) {
-		// Se aproximan los contornos a figuras simples
-		// a partir de su perimetro
-		approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.04, true);
+		vector<Point2f> approx;
+		Mat dst = src.clone();
 
-		// Si el objeto es muy pequeño
-		if (fabs(contourArea(contours[i])) < 100 || !isContourConvex(approx))
-			continue;
-		
-		// Cuadrado (cuatro esquinas)
-		if (approx.size() == 4) {
-			// se guarda el numero de vertices
-			int vtc = approx.size();
+		for (int i = 0; i < contours.size(); i++) {
+			// Se aproximan los contornos a figuras simples
+			// a partir de su perimetro
+			approxPolyDP(Mat(contours[i]), approx, arcLength(Mat(contours[i]), true)*0.04, true);
 
-			// calculo de cosenos de los bordes
-			vector<double> cos;
-			for (int j = 2; j < vtc + 1; j++)
-				cos.push_back(angle(approx[j%vtc], approx[j - 2], approx[j - 1]));
+			// Si el objeto es muy pequeño
+			if (fabs(contourArea(contours[i])) < 100 || !isContourConvex(approx))
+				continue;
+			
+			// Cuadrado (cuatro esquinas)
+			if (approx.size() == 4) {
+				// se guarda el numero de vertices
+				int vtc = approx.size();
 
-			// ordenar ascendentemente
-			sort(cos.begin(), cos.end());
+				// calculo de cosenos de los bordes
+				vector<double> cos;
+				for (int j = 2; j < vtc + 1; j++)
+					cos.push_back(angle(approx[j%vtc], approx[j - 2], approx[j - 1]));
 
-			// obtener el menor y mayor
-			double mincos = cos.front();
-			double maxcos = cos.back();
+				// ordenar ascendentemente
+				sort(cos.begin(), cos.end());
 
-			// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
-			if (mincos >= -0.3 && maxcos <= 0.5) {
-				float dominoID[2][128];
-				for(int k=0; k<2; k++){
-					for(int m=0; m<128; m++){
-						dominoID[k][m] = 0;
-					}
-				}
-				Point2f center(0, 0);
-				for (int k = 0; k < approx.size(); k++) {
-					center += approx[k];
-				}
-				center *= (1. / approx.size());
-				sortCorners(approx, center);
-				int w1 = (int)euclideanDistance(approx[0], approx[1]);
-				int h1 = (int)euclideanDistance(approx[1], approx[2]);
-				Rect r = boundingRect(approx);
-				if (r.area() < 5000)continue;
-				
-				// puntos finales para la transformacion de la imagen
-				//int h = r.height, w = r.width;
-				int h = h1, w = w1;
-				Point2f t1, t2, t3, t4;
-				if (r.width > r.height) {
-					h = r.width;
-					w = r.height;
-					t1 = Point2f(w, 0);
-					t2 = Point2f(w, h);
-					t3 = Point2f(0, h);
-					t4 = Point2f(0, 0);
-				}
-				else {
-					t1 = Point2f(0, 0);
-					t2 = Point2f(w, 0);
-					t3 = Point2f(w, h);
-					t4 = Point2f(0, h);
-				}
-				Mat quad = Mat::zeros(h, w, CV_8UC3);
+				// obtener el menor y mayor
+				double mincos = cos.front();
+				double maxcos = cos.back();
 
-				vector<Point2f> quad_pts;
-				quad_pts.push_back(t1);
-				quad_pts.push_back(t2);
-				quad_pts.push_back(t3);
-				quad_pts.push_back(t4);
-				// matriz de transformacion
-				Mat transmtx = getPerspectiveTransform(approx, quad_pts);
-				// aplicar transformacion de perspectiva 
-				warpPerspective(src, quad, transmtx, quad.size());
-				stringstream ss;
-				ss << i << ".jpg";
-				//imshow(ss.str(), quad);
-				//waitKey(0);
-				getDominoID(quad, dominoID);
-				for(int k=0; k<2; k++){
-					//std::cout << "Primera Mitad -----------------" << std::endl;
-					for(int m=0; m<128; m++){
-						dominosID[n_dominos][m] = dominoID[k][m];
-						//std::cout << dominosID[n_dominos][m] << std::endl;
-						if(m == 64){
-						//	std::cout << "Segunda Mitad -----------------" << std::endl;
+				// Si es un cuadrado, pueden habermas figuras con 4 esquinas que no lo sean
+				if (mincos >= -0.3 && maxcos <= 0.5) {
+					float dominoID[2][128];
+					for(int k=0; k<2; k++){
+						for(int m=0; m<128; m++){
+							dominoID[k][m] = 0;
 						}
 					}
-					n_dominos++;
+					Point2f center(0, 0);
+					for (int k = 0; k < approx.size(); k++) {
+						center += approx[k];
+					}
+					center *= (1. / approx.size());
+					sortCorners(approx, center);
+					int w1 = (int)euclideanDistance(approx[0], approx[1]);
+					int h1 = (int)euclideanDistance(approx[1], approx[2]);
+					Rect r = boundingRect(approx);
+					if (r.area() < 5000)continue;
+					
+					// puntos finales para la transformacion de la imagen
+					//int h = r.height, w = r.width;
+					int h = h1, w = w1;
+					Point2f t1, t2, t3, t4;
+					if (r.width > r.height) {
+						h = r.width;
+						w = r.height;
+						t1 = Point2f(w, 0);
+						t2 = Point2f(w, h);
+						t3 = Point2f(0, h);
+						t4 = Point2f(0, 0);
+					}
+					else {
+						t1 = Point2f(0, 0);
+						t2 = Point2f(w, 0);
+						t3 = Point2f(w, h);
+						t4 = Point2f(0, h);
+					}
+					Mat quad = Mat::zeros(h, w, CV_8UC3);
+
+					vector<Point2f> quad_pts;
+					quad_pts.push_back(t1);
+					quad_pts.push_back(t2);
+					quad_pts.push_back(t3);
+					quad_pts.push_back(t4);
+					// matriz de transformacion
+					Mat transmtx = getPerspectiveTransform(approx, quad_pts);
+					// aplicar transformacion de perspectiva 
+					warpPerspective(src, quad, transmtx, quad.size());
+					stringstream ss;
+					ss << i << ".jpg";
+					//imshow(ss.str(), quad);
+					//waitKey(0);
+					getDominoID(quad, dominoID);
+					for(int k=0; k<2; k++){
+						//std::cout << "Primera Mitad -----------------" << std::endl;
+						for(int m=0; m<128; m++){
+							dominosID[n_dominos][m] = dominoID[k][m];
+							//std::cout << dominosID[n_dominos][m] << std::endl;
+							if(m == 64){
+							//	std::cout << "Segunda Mitad -----------------" << std::endl;
+							}
+						}
+						n_dominos++;
+					}
+					//waitKey(0);
 				}
-				//waitKey(0);
+				good_contours.push_back(contours[i]);
 			}
-			good_contours.push_back(contours[i]);
 		}
-	}
-	std::cout << "Numero de dominos: " << n_dominos/2 << std::endl;
-	// Dibujar los contornos correctos
-	for (int i = 0; i < good_contours.size(); i++) {
-		drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
+	
+		std::cout << "Numero de dominos: " << n_dominos/2 << std::endl;
+		// Dibujar los contornos correctos
+		for (int i = 0; i < good_contours.size(); i++) {
+			drawContours(dst, good_contours, i, Scalar(255, 0, 0), 2);
+		}
+		namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
+		imshow("DOMINO TABLE", dst);
+		imwrite("detect_domino.jpg",dst);
 	}
 
 	loadLabelstxt(training_labels, n_dominos);
@@ -196,9 +202,7 @@ int main(int argv, char** argc) {
 	std::cout << "Best C: " << grid_params.best_c << " Best gamma: " << grid_params.best_g << std::endl;
 	//svm_predict(&model, const svm_node *x);
 
-	namedWindow("DOMINO TABLE", CV_WINDOW_NORMAL);
-	imshow("DOMINO TABLE", dst);
-	imwrite("detect_domino.jpg",dst);
+
 	waitKey(0);
 	
     return 0;

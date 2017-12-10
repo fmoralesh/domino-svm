@@ -204,7 +204,7 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
 
 void loadLabelstxt(int training_labels[100], int n_dominos){
     int i;
-    string fileName = "training_labels1.txt";
+    const char* fileName = "training_labels1.txt";
     
     //if(n_dominos < 25)
     //    fileName = "training_labels10.txt";
