@@ -162,7 +162,7 @@ void getDominoID(cv::Mat domino, float dominoID[][128]){
     // Make the process for first and second half of the domino
     for(k=0; k<2; k++){
         // Make the horizontal sum of values
-        for(i= dominoOTSU.size().height*k/2; i<dominoOTSU.size().height*k/2 + dominoOTSU.size().height/2; i++){
+        for(i=dominoOTSU.size().height*k/2; i<dominoOTSU.size().height*k/2 + dominoOTSU.size().height/2; i++){
             for(j=0; j<dominoOTSU.size().width; j++){
                 if(dominoOTSU.at<unsigned char>(i,j) >= 0)
                     counter += (int)dominoOTSU.at<unsigned char>(i,j);
