@@ -3,3 +3,4 @@ main
 data*
 domino-svm
 *.bin
+libsvm-3.22*
