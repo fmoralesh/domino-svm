@@ -40,7 +40,7 @@ int main(int argv, char** argc) {
 		x = 1;
 	}else{
 		x = 5;
-		imageName[0] = "./data/predict_set/5.jpeg";
+		imageName[0] = "./data/predict_set/4.jpeg";
 		n_dominos[0] = 0;
 	}
 
